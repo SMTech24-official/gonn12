@@ -193,10 +193,29 @@ model SessionCourt{
 model Subscription {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
   clubId      String   @db.ObjectId
+  subscriptionPlanId String @db.ObjectId
+  startDate   DateTime
+  endDate     DateTime
+  isActive    Boolean @default(true)
+
+  subscriptionPlan SubscriptionPlan @relation(fields: [subscriptionPlanId], references: [id], onDelete: Cascade)
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   @@map("Subscriptions")
+}
+
+model SubscriptionPlan {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  description String
+  price      Float
+  duration    Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("SubscriptionPlans")
+  Subscription Subscription[]
 }
 
 enum MatchType {
