@@ -95,10 +95,10 @@ const getSingleSubscription = async (id: string) => {
 //   return subscription
 // }
 
-const getCurrentSubscription = async (userId: string) => {
+const getCurrentSubscription = async (clubId: string) => {
   const club = await prisma.club.findUnique({
     where: {
-      ownerId: userId,
+      id: clubId,
     },
   })
 

@@ -1,9 +1,27 @@
+import ApiError from "../../../errors/ApiErrors"
 import catchAsync from "../../../shared/catchAsync"
+import prisma from "../../../shared/prisma"
 import sendResponse from "../../../shared/sendResponse"
 import { SubscriptionServices } from "./subscription.service"
 
-const createSubscription = catchAsync(async (req, res) => {
-  const subscription = await SubscriptionServices.createSubscription(req.body)
+const takeSubscription = catchAsync(async (req, res) => {
+  const ownerId = req.user.id
+
+  const club = await prisma.club.findUnique({
+    where: {
+      ownerId,
+    },
+  })
+
+  if (!club) {
+    throw new ApiError(404, "Club not found")
+  }
+
+  const { subscriptionPlanId } = req.body
+  const subscription = await SubscriptionServices.takeSubscription(
+    subscriptionPlanId,
+    club.id
+  )
 
   sendResponse(res, {
     statusCode: 200,
@@ -13,7 +31,9 @@ const createSubscription = catchAsync(async (req, res) => {
 })
 
 const getAllSubscriptions = catchAsync(async (req, res) => {
-  const subscriptions = await SubscriptionServices.getAllSubscriptions(req.query)
+  const subscriptions = await SubscriptionServices.getAllSubscriptions(
+    req.query
+  )
 
   sendResponse(res, {
     statusCode: 200,
@@ -23,7 +43,9 @@ const getAllSubscriptions = catchAsync(async (req, res) => {
 })
 
 const getSingleSubscription = catchAsync(async (req, res) => {
-  const subscription = await SubscriptionServices.getSingleSubscription(req.params.id)
+  const subscription = await SubscriptionServices.getSingleSubscription(
+    req.params.id
+  )
 
   sendResponse(res, {
     statusCode: 200,
@@ -32,30 +54,46 @@ const getSingleSubscription = catchAsync(async (req, res) => {
   })
 })
 
-const updateSubscription = catchAsync(async (req, res) => {
-  const subscription = await SubscriptionServices.updateSubscription(req.params.id, req.body)
+const cancelSubscription = catchAsync(async (req, res) => {
+  const subscription = await SubscriptionServices.cancelSubscription(
+    req.params.id
+  )
 
   sendResponse(res, {
     statusCode: 200,
-    message: "Subscription updated successfully",
+    message: "Subscription canceled successfully",
     data: subscription,
   })
 })
 
-const deleteSubscription = catchAsync(async (req, res) => {
-  const subscription = await SubscriptionServices.deleteSubscription(req.params.id)
+const getCurrentSubscription = catchAsync(async (req, res) => {
+  const ownerId = req.user.id
+
+  const club = await prisma.club.findUnique({
+    where: {
+      ownerId,
+    },
+  })
+
+  if (!club) {
+    throw new ApiError(404, "Club not found")
+  }
+
+  const subscription = await SubscriptionServices.getCurrentSubscription(
+    club.id
+  )
 
   sendResponse(res, {
     statusCode: 200,
-    message: "Subscription deleted successfully",
+    message: "Current subscription retrieved successfully",
     data: subscription,
   })
 })
 
 export const SubscriptionControllers = {
-  createSubscription,
+  takeSubscription,
   getAllSubscriptions,
   getSingleSubscription,
-  updateSubscription,
-  deleteSubscription,
+  getCurrentSubscription,
+  cancelSubscription,
 }

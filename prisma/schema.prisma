@@ -34,7 +34,6 @@ model Club {
   image       String?
   remainingCourts Int @default(3)
   remainingMembers Int @default(20)
-  isSubscribed      Boolean @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 

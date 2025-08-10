@@ -1,6 +1,8 @@
 import { Court } from "@prisma/client"
 import prisma from "../../../shared/prisma"
 import ApiError from "../../../errors/ApiErrors"
+import { get } from "http"
+import { SubscriptionServices } from "../Subscription/subscription.service"
 
 const createCourt = async (payload: Court) => {
   const { clubId, name } = payload
@@ -29,7 +31,9 @@ const createCourt = async (payload: Court) => {
     throw new ApiError(400, "Court with this name already exists")
   }
 
-  if (!club.isSubscribed) {
+  const subscription = SubscriptionServices.getCurrentSubscription(clubId)
+
+  if (!subscription) {
     if (club.remainingCourts <= 0) {
       throw new ApiError(400, "No remaining courts available for this club")
     } else {
