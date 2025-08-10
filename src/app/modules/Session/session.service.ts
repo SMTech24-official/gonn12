@@ -224,13 +224,21 @@ const endSession = async (id: string) => {
   if (!session.isActive) {
     throw new ApiError(400, "Session is already ended")
   }
-  await prisma.session.update({
-    where: {
-      id,
-    },
-    data: {
-      isActive: false,
-    },
+  await prisma.$transaction(async (prisma) => {
+    await prisma.session.update({
+      where: {
+        id,
+      },
+      data: {
+        isActive: false,
+      },
+    })
+
+    await prisma.member.deleteMany({
+      where: {
+        sessionId: id,
+      },
+    })
   })
   return session
 }

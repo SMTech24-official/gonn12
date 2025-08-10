@@ -67,11 +67,14 @@ model Member{
   name        String
   gender     Gender @default(MALE)
   level       Level @default(CASUAL)
-  clubId      String?   @db.ObjectId 
+  clubId      String?   @db.ObjectId
+  sessionId   String?   @db.ObjectId
   isMember   Boolean @default(false)
   joinedAt    DateTime @default(now())
 
   club        Club?     @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  session     Session?  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
   @@map("Members")
   Participant MatchParticipant[]
   SessionParticipant SessionParticipant[]
@@ -133,6 +136,7 @@ model Session {
   SessionCourt SessionCourt[]
   sessionQueue SessionQueue?
   MatchPool MatchPool[]
+  Member Member[]
 }
 
 enum Type {
