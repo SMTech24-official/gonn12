@@ -30,17 +30,94 @@ const loginUser = async (payload: { email: string; password: string }) => {
   if (!isCorrectPassword) {
     throw new ApiError(httpStatus.BAD_REQUEST, "Password incorrect!")
   }
+
+  await sendOtp(userData.email)
+}
+
+const sendOtp = async (email: string) => {
+  const user = await prisma.user.findUnique({
+    where: { email },
+  })
+
+  if (!user) {
+    throw new ApiError(httpStatus.NOT_FOUND, "User not found")
+  }
+
+  const otp = Math.floor(100000 + Math.random() * 900000).toString()
+
+  const existingOtp = await prisma.otp.findFirst({
+    where: { userId: user.id },
+    orderBy: { createdAt: "desc" },
+  })
+
+  if (existingOtp) {
+    // If an OTP already exists, we can update it
+    await prisma.otp.update({
+      where: { id: existingOtp.id },
+      data: { otp, expiresAt: new Date(Date.now() + 5 * 60 * 1000) },
+    })
+  } else {
+    await prisma.otp.create({
+      data: {
+        userId: user.id,
+        otp,
+        expiresAt: new Date(Date.now() + 5 * 60 * 1000), // 5 minutes expiry
+      },
+    })
+  }
+
+  await sendEmail(
+    email,
+    "Your OTP Code",
+    `
+      <div>
+        <p>Your OTP code is: <strong>${otp}</strong></p>
+        <p>This code will expire in 5 minutes.</p>
+      </div>
+    `
+  )
+
+  return { message: "OTP sent successfully" }
+}
+
+const verifyOtp = async (email: string, otp: string) => {
+  const user = await prisma.user.findUnique({
+    where: { email },
+  })
+
+  if (!user) {
+    throw new ApiError(httpStatus.NOT_FOUND, "User not found")
+  }
+
+  const existingOtp = await prisma.otp.findFirst({
+    where: { userId: user.id, otp },
+  })
+
+  if (!existingOtp) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "Invalid OTP")
+  }
+
+  if (existingOtp.expiresAt < new Date()) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "OTP expired")
+  }
+
+  await prisma.otp.delete({
+    where: { id: existingOtp.id },
+  })
+
   const accessToken = jwtHelpers.generateToken(
     {
-      id: userData.id,
-      email: userData.email,
-      role: userData.role,
+      id: user.id,
+      email: user.email,
+      role: user.role,
     },
     config.jwt.jwt_secret as Secret,
     config.jwt.expires_in as string
   )
 
   return { token: accessToken }
+
+  return { message: "OTP verified successfully" }
 }
 
 // get user profile
@@ -175,6 +252,7 @@ const resetPassword = async (token: string, payload: { password: string }) => {
 export const AuthServices = {
   loginUser,
   getMyProfile,
+  verifyOtp,
   changePassword,
   forgotPassword,
   resetPassword,

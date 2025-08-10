@@ -23,6 +23,7 @@ model User {
 
   @@map("Users")
   Club Club?
+  Otp Otp[]
 }
 
 model Club {
@@ -273,4 +274,18 @@ enum GenderType {
   MALE
   FEMALE
   MIXED
+}
+
+model Otp {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  otp       String
+  expiresAt DateTime
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("OTPs")
 }
