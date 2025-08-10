@@ -1,6 +1,7 @@
 import { Member } from "@prisma/client"
 import prisma from "../../../shared/prisma"
 import ApiError from "../../../errors/ApiErrors"
+import { SubscriptionServices } from "../Subscription/subscription.service"
 
 const createMember = async (payload: Member) => {
   let { clubId, isMember } = payload
@@ -17,7 +18,11 @@ const createMember = async (payload: Member) => {
         throw new ApiError(404, "Club not found")
       }
 
-      if (!club.isSubscribed && club.remainingMembers <= 0) {
+      const subscription = await SubscriptionServices.getCurrentSubscription(
+        clubId
+      )
+
+      if (!subscription && club.remainingMembers <= 0) {
         throw new ApiError(400, "No remaining members available for this club")
       }
 
