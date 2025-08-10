@@ -1,0 +1,272 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String     @id @default(auto()) @map("_id") @db.ObjectId
+  name         String
+  email        String     @unique
+  phoneNumber  String?
+  profileImage String?
+  password     String
+
+  customerId   String   @db.ObjectId @unique
+  role         UserRole   @default(CLUB_OWNER)
+  status       UserStatus @default(ACTIVE)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@map("Users")
+  Club Club?
+}
+
+model Club {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  ownerId    String   @db.ObjectId @unique
+  name        String
+  description String?
+  image       String?
+  remainingCourts Int @default(3)
+  remainingMembers Int @default(20)
+  isSubscribed      Boolean @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  owner       User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@map("Clubs")
+  Court Court[]
+  Member Member[]
+  Match Match[]
+  Session Session[]
+}
+
+model Court{
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String @unique
+  description String?
+  image       String?
+  clubId      String   @db.ObjectId
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  club        Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
+
+  @@map("Courts")
+  Match Match[]
+  SessionCourt SessionCourt[]
+}
+
+model Member{
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  gender     Gender @default(MALE)
+  level       Level @default(CASUAL)
+  clubId      String?   @db.ObjectId 
+  isMember   Boolean @default(false)
+  joinedAt    DateTime @default(now())
+
+  club        Club?     @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  @@map("Members")
+  Participant MatchParticipant[]
+  SessionParticipant SessionParticipant[]
+  SessionQueueParticipant SessionQueueParticipant[]
+  MatchPoolParticipant MatchPoolParticipant[]
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+enum Level {
+  CASUAL
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+model Match{
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  clubId      String?   @db.ObjectId
+  courtId     String   @db.ObjectId
+  createdAt   DateTime @default(now())
+  startTime   DateTime
+  endTime     DateTime
+  matchType        MatchType @default(SCHEDULED)
+  genderType GenderType @default(MIXED)
+  type       Type @default(DOUBLES)
+  isActive    Boolean @default(true)
+  sessionId   String?   @db.ObjectId
+  updatedAt   DateTime @updatedAt
+
+  club        Club?     @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  court       Court?    @relation(fields: [courtId], references: [id], onDelete: Cascade)
+  session     Session?  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@map("QuickMatches")
+  Participant MatchParticipant[]
+}
+
+model Session {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  clubId      String   @db.ObjectId
+  remainingParticipants Int @default(20)
+  createdAt   DateTime @default(now())
+  startTime   DateTime
+  endTime     DateTime
+  genderType  GenderType @default(MIXED)
+  type        Type @default(DOUBLES)
+  isActive    Boolean @default(true)
+  updatedAt   DateTime @updatedAt
+
+  club        Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
+
+  @@map("ScheduledMatches")
+  Match Match[]
+  SessionParticipant SessionParticipant[]
+  SessionCourt SessionCourt[]
+  sessionQueue SessionQueue?
+  MatchPool MatchPool[]
+}
+
+enum Type {
+  SINGLE
+  DOUBLES
+}
+
+model MatchParticipant{
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  memberId    String   @db.ObjectId
+  matchId     String   @db.ObjectId
+  points      Int @default(0)
+  teamName    TeamName
+  isWon       Boolean @default(false)
+  joinedAt    DateTime @default(now())
+
+  match       Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  member      Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@map("Participants")
+}
+
+enum TeamName{
+  TEAM_A
+  TEAM_B
+}
+
+model SessionParticipant {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  memberId    String   @db.ObjectId
+  sessionId   String   @db.ObjectId
+  status      UserStatus @default(ACTIVE)
+
+  session     Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  member      Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@map("SessionParticipants")
+}
+
+model SessionCourt{
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  sessionId   String   @db.ObjectId
+  courtId     String   @db.ObjectId
+  isBooked    Boolean @default(false)
+
+  session     Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  court       Court    @relation(fields: [courtId], references: [id], onDelete: Cascade)
+
+  @@map("SessionCourts")
+  @@unique([sessionId, courtId])
+}
+
+model Subscription {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  clubId      String   @db.ObjectId
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  @@map("Subscriptions")
+}
+
+enum MatchType {
+  QUICK
+  SCHEDULED
+}
+
+enum UserRole {
+  ADMIN
+  SUPER_ADMIN
+  CLUB_OWNER
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  BLOCKED
+}
+
+model SessionQueue {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  sessionId   String   @db.ObjectId @unique
+  isActive    Boolean @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  session     Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@map("SessionQueue")
+  SessionQueueParticipant SessionQueueParticipant[]
+}
+
+model SessionQueueParticipant {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  sessionQueueId   String   @db.ObjectId
+  memberId    String   @db.ObjectId
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  sessionQueue SessionQueue @relation(fields: [sessionQueueId], references: [id], onDelete: Cascade)
+  member      Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@map("SessionQueueParticipants")
+}
+
+model MatchPool {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  sessionId   String   @db.ObjectId
+  genderType  GenderType @default(MIXED)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  session     Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@map("MatchPools")
+  matchPoolParticipants MatchPoolParticipant[]
+}
+
+model MatchPoolParticipant {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  matchPoolId String   @db.ObjectId
+  memberId    String   @db.ObjectId
+  teamName    TeamName
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  matchPool   MatchPool @relation(fields: [matchPoolId], references: [id], onDelete: Cascade)
+  member      Member    @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@map("MatchPoolParticipants")
+}
+
+enum GenderType {
+  MALE
+  FEMALE
+  MIXED
+}
