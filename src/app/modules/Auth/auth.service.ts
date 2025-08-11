@@ -31,7 +31,18 @@ const loginUser = async (payload: { email: string; password: string }) => {
     throw new ApiError(httpStatus.BAD_REQUEST, "Password incorrect!")
   }
 
-  await sendOtp(userData.email)
+  const otp = await sendOtp(userData.email)
+
+  await sendEmail(
+    userData.email,
+    "Your OTP Code",
+    `
+      <div>
+        <p>Your OTP code is: <strong>${otp}</strong></p>
+        <p>This code will expire in 5 minutes.</p>
+      </div>
+    `
+  )
 }
 
 const sendOtp = async (email: string) => {
@@ -66,21 +77,10 @@ const sendOtp = async (email: string) => {
     })
   }
 
-  await sendEmail(
-    email,
-    "Your OTP Code",
-    `
-      <div>
-        <p>Your OTP code is: <strong>${otp}</strong></p>
-        <p>This code will expire in 5 minutes.</p>
-      </div>
-    `
-  )
-
-  return { message: "OTP sent successfully" }
+  return otp
 }
 
-const verifyOtp = async (email: string, otp: string) => {
+const checkOtp = async (email: string, otp: string) => {
   const user = await prisma.user.findUnique({
     where: { email },
   })
@@ -104,6 +104,20 @@ const verifyOtp = async (email: string, otp: string) => {
   await prisma.otp.delete({
     where: { id: existingOtp.id },
   })
+
+  return { message: "OTP is valid" }
+}
+
+const verifyOtp = async (email: string, otp: string) => {
+  const user = await prisma.user.findUnique({
+    where: { email },
+  })
+
+  if (!user) {
+    throw new ApiError(httpStatus.NOT_FOUND, "User not found")
+  }
+
+  await checkOtp(email, otp)
 
   const accessToken = jwtHelpers.generateToken(
     {
@@ -183,56 +197,44 @@ const forgotPassword = async (payload: { email: string }) => {
     },
   })
 
-  const resetPassToken = jwtHelpers.generateToken(
-    { email: userData.email, role: userData.role, id: userData.id },
-    config.jwt.reset_pass_secret as Secret,
-    config.jwt.reset_pass_token_expires_in as string
-  )
+  const otp = await sendOtp(userData.email)
 
-  const resetPassLink =
-    config.reset_pass_link + `?userId=${userData.id}&token=${resetPassToken}`
+  const resetMessageTemplate = `
+    <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+      <p>Dear ${userData.name},</p>
 
-  await sendEmail(
-    userData.email,
-    "Reset Your Password",
-    `
-     <div style="font-family: Arial, sans-serif; line-height: 1.6;">
-          <p>Dear ${userData.name},</p>
-          
-          <p>We received a request to reset your password. Click the button below to reset your password:</p>
-          
-          <a href="${resetPassLink}" style="text-decoration: none;">
-            <button style="background-color: #007BFF; color: white; padding: 10px 20px; border: none; border-radius: 5px; font-size: 16px; cursor: pointer;">
-              Reset Password
-            </button>
-          </a>
-          
-          <p>If you did not request a password reset, please ignore this email or contact support if you have any concerns.</p>
-          
-          <p>Thank you</p>
-</div>
+      <p>We received a request to reset your password. Please use the following OTP to reset your password:</p>
 
-      `
-  )
+      <div style="font-size: 24px; font-weight: bold;">${otp}</div>
+
+      <p>This OTP will expire in 5 minutes.</p>
+
+      <p>If you did not request a password reset, please ignore this email or contact support if you have any concerns.</p>
+
+      <p>Thank you</p>
+    </div>
+  `
+
+  await sendEmail(userData.email, "Reset Your Password", resetMessageTemplate)
+
   return { message: "Reset password link sent via your email successfully" }
 }
 
 // reset password
-const resetPassword = async (token: string, payload: { password: string }) => {
-  const isValidToken = jwtHelpers.verifyToken(
-    token,
-    config.jwt.reset_pass_secret as Secret
-  )
+const resetPassword = async (payload: {
+  otp: string
+  email: string
+  password: string
+}) => {
+  await checkOtp(payload.email, payload.otp)
 
-  if (!isValidToken) {
-    throw new ApiError(httpStatus.FORBIDDEN, "Forbidden!")
-  }
-
-  const userData = await prisma.user.findUniqueOrThrow({
-    where: {
-      id: isValidToken.id,
-    },
+  const user = await prisma.user.findUnique({
+    where: { email: payload.email },
   })
+
+  if (!user) {
+    throw new ApiError(httpStatus.NOT_FOUND, "User not found")
+  }
 
   // hash password
   const password = await bcrypt.hash(payload.password, 12)
@@ -240,7 +242,7 @@ const resetPassword = async (token: string, payload: { password: string }) => {
   // update into database
   await prisma.user.update({
     where: {
-      id: userData.id,
+      id: user.id,
     },
     data: {
       password,
