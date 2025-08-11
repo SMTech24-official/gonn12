@@ -10,7 +10,11 @@ router.post(
   auth(UserRole.CLUB_OWNER),
   SubscriptionControllers.takeSubscription
 )
-router.get("/", SubscriptionControllers.getAllSubscriptions)
+router.get(
+  "/",
+  auth(UserRole.ADMIN, UserRole.SUPER_ADMIN),
+  SubscriptionControllers.getAllSubscriptions
+)
 router.get(
   "/current",
   auth(UserRole.CLUB_OWNER),

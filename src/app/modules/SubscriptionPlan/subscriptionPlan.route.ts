@@ -7,19 +7,19 @@ const router = express.Router()
 
 router.post(
   "/",
-  auth(UserRole.ADMIN),
+  auth(UserRole.ADMIN, UserRole.SUPER_ADMIN),
   SubscriptionPlanControllers.createSubscriptionPlan
 )
 router.get("/", SubscriptionPlanControllers.getAllSubscriptionPlans)
 router.get("/:id", SubscriptionPlanControllers.getSingleSubscriptionPlan)
 router.patch(
   "/:id",
-  auth(UserRole.ADMIN),
+  auth(UserRole.ADMIN, UserRole.SUPER_ADMIN),
   SubscriptionPlanControllers.updateSubscriptionPlan
 )
 router.delete(
   "/:id",
-  auth(UserRole.ADMIN),
+  auth(UserRole.ADMIN, UserRole.SUPER_ADMIN),
   SubscriptionPlanControllers.deleteSubscriptionPlan
 )
 
