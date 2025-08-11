@@ -4,14 +4,16 @@ import config from "../../config"
 export const sendEmail = async (to: string, subject: string, html: string) => {
   try {
     const transporter = nodemailer.createTransport({
-      host: "smtp-relay.brevo.com",
-      port: 2525,
+      host: "smtp.gmail.com",
+      port: 587,
       secure: false, // Use TLS, `false` ensures STARTTLS
       auth: {
         user: config.email, // Your email address
         pass: config.brevo_pass, // Your app-specific password
       },
     })
+
+    console.log(config.email, config.brevo_pass, to)
 
     const mailOptions = {
       from: `"Support Team" <${config.email}>`, // Sender's name and email

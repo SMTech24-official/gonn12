@@ -10,7 +10,7 @@ const loginUser = catchAsync(async (req: Request, res: Response) => {
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
-    message: "User logged in successfully",
+    message: "OTP sent successfully",
     data: result,
   })
 })

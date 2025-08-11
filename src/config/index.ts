@@ -18,7 +18,6 @@ export default {
   },
   reset_pass_link: process.env.RESET_PASS_LINK,
   email: process.env.EMAIL,
-  brevo_email: process.env.EMAIL,
   brevo_pass: process.env.BREVO_PASS,
 
   STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
