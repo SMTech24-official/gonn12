@@ -30,6 +30,7 @@ const auth = (...roles: string[]) => {
       const user = await prisma.user.findUnique({
         where: {
           id: id,
+          isVerified: true,
         },
       })
       if (!user) {

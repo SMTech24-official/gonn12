@@ -33,8 +33,6 @@ const createUserIntoDb = async (payload: User) => {
     Number(config.bcrypt_salt_rounds)
   )
 
-  await AuthServices.sendOtp(payload.email)
-
   const result = await prisma.user.create({
     data: { ...payload, password: hashedPassword },
     select: {
@@ -46,6 +44,8 @@ const createUserIntoDb = async (payload: User) => {
       updatedAt: true,
     },
   })
+
+  await AuthServices.sendOtp(payload.email)
 
   return result
 }
@@ -71,6 +71,7 @@ const verifyOtpAndRegister = async (email: string, otp: string) => {
       id: user.id,
       email: user.email,
       role: user.role,
+      isVerified: user.isVerified,
     },
     config.jwt.jwt_secret as Secret,
     config.jwt.expires_in as string

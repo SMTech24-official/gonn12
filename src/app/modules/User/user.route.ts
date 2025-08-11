@@ -8,6 +8,8 @@ const router = express.Router()
 
 // *!register user
 router.post("/register", userController.createUser)
+
+router.post("/verify-otp", userController.verifyOtpAndRegister)
 // *!get all  user
 router.get("/", userController.getUsers)
 
