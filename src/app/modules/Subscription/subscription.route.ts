@@ -6,7 +6,7 @@ import { SubscriptionControllers } from "./subscription.controller"
 const router = express.Router()
 
 router.post(
-  "/",
+  "/take/:planId",
   auth(UserRole.CLUB_OWNER),
   SubscriptionControllers.takeSubscription
 )

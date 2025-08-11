@@ -12,6 +12,8 @@ import { MatchRoutes } from "../modules/Match/match.route"
 import { MatchParticipantRoutes } from "../modules/MatchParticipant/matchParticipant.route"
 import { MatchPoolRoutes } from "../modules/MatchPool/matchPool.route"
 import { SessionQueueRoutes } from "../modules/SessionQueue/sessionQueue.route"
+import { SubscriptionRoutes } from "../modules/Subscription/subscription.route"
+import { SubscriptionPlanRoutes } from "../modules/SubscriptionPlan/subscriptionPlan.route"
 
 const router = express.Router()
 
@@ -63,6 +65,14 @@ const moduleRoutes = [
   {
     path: "/session-queue",
     route: SessionQueueRoutes,
+  },
+  {
+    path: "/subscriptions",
+    route: SubscriptionRoutes,
+  },
+  {
+    path: "/subscription-plans",
+    route: SubscriptionPlanRoutes,
   },
 ]
 

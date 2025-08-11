@@ -17,9 +17,9 @@ const takeSubscription = catchAsync(async (req, res) => {
     throw new ApiError(404, "Club not found")
   }
 
-  const { subscriptionPlanId } = req.body
+  const { planId } = req.params
   const subscription = await SubscriptionServices.takeSubscription(
-    subscriptionPlanId,
+    planId,
     club.id
   )
 
