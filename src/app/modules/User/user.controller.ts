@@ -13,6 +13,19 @@ const createUser = catchAsync(async (req: Request, res: Response) => {
   })
 })
 
+const verifyOtpAndRegister = catchAsync(async (req: Request, res: Response) => {
+  const { email, otp } = req.body
+  const result = await userService.verifyOtpAndRegister(email, otp)
+
+  res.cookie("token", result.token, { httpOnly: true })
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    message: "User verified and registered successfully!",
+    data: result,
+  })
+})
+
 // get all user form db
 const getUsers = catchAsync(async (req: Request, res: Response) => {
   const result = await userService.getUsersFromDb(req.query)
@@ -53,4 +66,5 @@ export const userController = {
   getUsers,
   updateProfile,
   updateUser,
+  verifyOtpAndRegister,
 }

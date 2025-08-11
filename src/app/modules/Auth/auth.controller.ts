@@ -3,14 +3,14 @@ import catchAsync from "../../../shared/catchAsync"
 import { AuthServices } from "./auth.service"
 import sendResponse from "../../../shared/sendResponse"
 import httpStatus from "http-status"
-import { string } from "zod"
 
 const loginUser = catchAsync(async (req: Request, res: Response) => {
   const result = await AuthServices.loginUser(req.body)
 
+  res.cookie("token", result.token, { httpOnly: true })
   sendResponse(res, {
     statusCode: httpStatus.OK,
-    message: "OTP sent successfully",
+    message: "Login successful",
     data: result,
   })
 })
@@ -26,19 +26,6 @@ const logoutUser = catchAsync(async (req: Request, res: Response) => {
     statusCode: httpStatus.OK,
     message: "User Successfully logged out",
     data: null,
-  })
-})
-
-const verifyOtp = catchAsync(async (req: Request, res: Response) => {
-  const { email, otp } = req.body
-
-  const result = await AuthServices.verifyOtp(email, otp)
-  res.cookie("token", result.token, { httpOnly: true })
-
-  sendResponse(res, {
-    statusCode: httpStatus.OK,
-    message: "OTP verified successfully",
-    data: result,
   })
 })
 
@@ -95,7 +82,6 @@ const resetPassword = catchAsync(async (req: Request, res: Response) => {
 export const AuthController = {
   loginUser,
   logoutUser,
-  verifyOtp,
   getMyProfile,
   changePassword,
   forgotPassword,

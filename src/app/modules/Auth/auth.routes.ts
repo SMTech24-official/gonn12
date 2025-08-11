@@ -12,8 +12,6 @@ router.post("/login", AuthController.loginUser)
 // user logout route
 router.post("/logout", AuthController.logoutUser)
 
-router.post("/verify-otp", AuthController.verifyOtp)
-
 router.get("/profile", auth(), AuthController.getMyProfile)
 
 router.put("/change-password", auth(), AuthController.changePassword)

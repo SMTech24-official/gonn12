@@ -31,18 +31,17 @@ const loginUser = async (payload: { email: string; password: string }) => {
     throw new ApiError(httpStatus.BAD_REQUEST, "Password incorrect!")
   }
 
-  const otp = await sendOtp(userData.email)
-
-  await sendEmail(
-    userData.email,
-    "Your OTP Code",
-    `
-      <div>
-        <p>Your OTP code is: <strong>${otp}</strong></p>
-        <p>This code will expire in 5 minutes.</p>
-      </div>
-    `
+  const accessToken = jwtHelpers.generateToken(
+    {
+      id: userData.id,
+      email: userData.email,
+      role: userData.role,
+    },
+    config.jwt.jwt_secret as Secret,
+    config.jwt.expires_in as string
   )
+
+  return { token: accessToken }
 }
 
 const sendOtp = async (email: string) => {
@@ -130,8 +129,6 @@ const verifyOtp = async (email: string, otp: string) => {
   )
 
   return { token: accessToken }
-
-  return { message: "OTP verified successfully" }
 }
 
 // get user profile
@@ -254,6 +251,7 @@ const resetPassword = async (payload: {
 export const AuthServices = {
   loginUser,
   getMyProfile,
+  sendOtp,
   verifyOtp,
   changePassword,
   forgotPassword,

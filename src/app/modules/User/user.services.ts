@@ -8,6 +8,9 @@ import { Prisma, User, UserRole, UserStatus } from "@prisma/client"
 import { userSearchAbleFields } from "./user.costant"
 import config from "../../../config"
 import httpStatus from "http-status"
+import { AuthServices } from "../Auth/auth.service"
+import { jwtHelpers } from "../../../helpers/jwtHelpers"
+import { Secret } from "jsonwebtoken"
 
 // Create a new user in the database.
 const createUserIntoDb = async (payload: User) => {
@@ -30,6 +33,8 @@ const createUserIntoDb = async (payload: User) => {
     Number(config.bcrypt_salt_rounds)
   )
 
+  await AuthServices.sendOtp(payload.email)
+
   const result = await prisma.user.create({
     data: { ...payload, password: hashedPassword },
     select: {
@@ -43,6 +48,35 @@ const createUserIntoDb = async (payload: User) => {
   })
 
   return result
+}
+
+const verifyOtpAndRegister = async (email: string, otp: string) => {
+  await AuthServices.verifyOtp(email, otp)
+
+  const user = await prisma.user.findUnique({
+    where: { email },
+  })
+
+  if (!user) {
+    throw new ApiError(404, "User not found")
+  }
+
+  await prisma.user.update({
+    where: { email },
+    data: { isVerified: true },
+  })
+
+  const accessToken = jwtHelpers.generateToken(
+    {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+    },
+    config.jwt.jwt_secret as Secret,
+    config.jwt.expires_in as string
+  )
+
+  return { token: accessToken }
 }
 
 // reterive all users from the database also searcing anf filetering
@@ -159,6 +193,7 @@ const updateUserIntoDb = async (payload: IUser, id: string) => {
 
 export const userService = {
   createUserIntoDb,
+  verifyOtpAndRegister,
   getUsersFromDb,
   updateProfile,
   updateUserIntoDb,
