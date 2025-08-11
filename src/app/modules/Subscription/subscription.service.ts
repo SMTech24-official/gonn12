@@ -106,12 +106,18 @@ const getCurrentSubscription = async (clubId: string) => {
     throw new ApiError(404, "Club not found")
   }
 
-  return prisma.subscription.findFirst({
+  const subscription = await prisma.subscription.findFirst({
     where: {
       clubId: club.id,
       isActive: true,
     },
   })
+
+  if (!subscription) {
+    throw new ApiError(404, "Subscription not found")
+  }
+
+  return subscription
 }
 
 const cancelSubscription = async (id: string) => {

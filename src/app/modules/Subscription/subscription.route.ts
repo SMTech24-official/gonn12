@@ -20,7 +20,11 @@ router.get(
   auth(UserRole.CLUB_OWNER),
   SubscriptionControllers.getCurrentSubscription
 )
-router.get("/:id", SubscriptionControllers.getSingleSubscription)
+router.get(
+  "/:id",
+  auth(UserRole.ADMIN, UserRole.SUPER_ADMIN),
+  SubscriptionControllers.getSingleSubscription
+)
 router.delete(
   "/:id",
   auth(UserRole.CLUB_OWNER),
