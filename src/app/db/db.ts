@@ -8,6 +8,7 @@ export const initiateSuperAdmin = async () => {
     email: "ashrafulsifat26@gmail.com",
     phoneNumber: "1234567890",
     password: "12345678",
+    isVerified: true,
     role: UserRole.SUPER_ADMIN,
   }
 

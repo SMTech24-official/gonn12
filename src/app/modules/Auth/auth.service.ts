@@ -16,6 +16,10 @@ const loginUser = async (payload: { email: string; password: string }) => {
     },
   })
 
+  if (!userData?.isVerified) {
+    throw new ApiError(httpStatus.UNAUTHORIZED, "User is not verified!")
+  }
+
   if (!userData?.email) {
     throw new ApiError(
       httpStatus.NOT_FOUND,
