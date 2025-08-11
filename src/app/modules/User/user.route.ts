@@ -11,14 +11,14 @@ router.post("/register", userController.createUser)
 
 router.post("/verify-otp", userController.verifyOtpAndRegister)
 // *!get all  user
-router.get("/", userController.getUsers)
+router.get(
+  "/",
+  auth(UserRole.ADMIN, UserRole.SUPER_ADMIN),
+  userController.getUsers
+)
 
 // *!profile user
-router.put(
-  "/profile",
-  auth(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.ADMIN),
-  userController.updateProfile
-)
+router.put("/profile", auth(), userController.updateProfile)
 
 // *!update  user
 router.put(
