@@ -15,7 +15,7 @@ model User {
   profileImage String?
   password     String
 
-  customerId   String   @db.ObjectId @unique
+  customerId   String?   @db.ObjectId @unique
   role         UserRole   @default(CLUB_OWNER)
   status       UserStatus @default(ACTIVE)
   createdAt    DateTime   @default(now())
