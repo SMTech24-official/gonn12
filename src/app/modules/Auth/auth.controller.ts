@@ -79,6 +79,17 @@ const resetPassword = catchAsync(async (req: Request, res: Response) => {
   })
 })
 
+const sendOtp = catchAsync(async (req: Request, res: Response) => {
+  const { email } = req.body
+  const otp = await AuthServices.sendOtp(email)
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    message: "OTP sent successfully",
+    data: { otp },
+  })
+})
+
 export const AuthController = {
   loginUser,
   logoutUser,
@@ -86,4 +97,5 @@ export const AuthController = {
   changePassword,
   forgotPassword,
   resetPassword,
+  sendOtp,
 }
