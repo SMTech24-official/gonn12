@@ -46,6 +46,7 @@ const createUserIntoDb = async (payload: User) => {
   })
 
   await AuthServices.sendOtp(payload.email)
+  
 
   return result
 }

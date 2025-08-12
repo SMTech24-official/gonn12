@@ -80,6 +80,24 @@ const sendOtp = async (email: string) => {
     })
   }
 
+  const messageTemplate = `
+    <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+      <p>Dear ${user.name},</p>
+
+      <p>Your OTP for email verification is:</p>
+
+      <div style="font-size: 24px; font-weight: bold;">${otp}</div>
+
+      <p>This OTP will expire in 5 minutes.</p>
+
+      <p>If you did not request this OTP, please ignore this email or contact support if you have any concerns.</p>
+
+      <p>Thank you</p>
+    </div>
+  `
+
+  await sendEmail(user.email, "Verify Your Email", messageTemplate)
+
   return otp
 }
 

@@ -16,7 +16,7 @@ model User {
   password     String
   isVerified   Boolean    @default(false)
 
-  customerId   String?   @db.ObjectId @unique
+  customerId   String?    @unique
   role         UserRole   @default(CLUB_OWNER)
   status       UserStatus @default(ACTIVE)
   createdAt    DateTime   @default(now())
