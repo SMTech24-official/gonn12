@@ -33,20 +33,30 @@ const createUserIntoDb = async (payload: User) => {
     Number(config.bcrypt_salt_rounds)
   )
 
-  const result = await prisma.user.create({
-    data: { ...payload, password: hashedPassword },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      role: true,
-      createdAt: true,
-      updatedAt: true,
-    },
+  const result = await prisma.$transaction(async (prisma) => {
+    const result = await prisma.user.create({
+      data: { ...payload, password: hashedPassword },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    })
+
+    await prisma.club.create({
+      data: {
+        name: `${payload.name}'s Club`,
+        ownerId: result.id,
+      },
+    })
+
+    return result
   })
 
   await AuthServices.sendOtp(payload.email)
-  
 
   return result
 }

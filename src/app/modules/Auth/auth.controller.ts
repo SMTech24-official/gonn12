@@ -86,7 +86,7 @@ const sendOtp = catchAsync(async (req: Request, res: Response) => {
   sendResponse(res, {
     statusCode: httpStatus.OK,
     message: "OTP sent successfully",
-    data: { otp },
+    data: null,
   })
 })
 
