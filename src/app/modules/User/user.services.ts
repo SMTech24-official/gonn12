@@ -48,7 +48,7 @@ const createUserIntoDb = async (payload: User) => {
 
     await prisma.club.create({
       data: {
-        name: `${payload.name}'s Club`,
+        name: `${payload.name}`,
         ownerId: result.id,
       },
     })
