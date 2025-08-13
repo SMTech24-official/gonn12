@@ -297,4 +297,5 @@ export const AuthServices = {
   changePassword,
   forgotPassword,
   resetPassword,
+  verifyForgetPassword,
 }

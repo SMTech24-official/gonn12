@@ -20,6 +20,8 @@ router.post("/forgot-password", AuthController.forgotPassword)
 
 router.post("/reset-password", AuthController.resetPassword)
 
+router.post("/verify-forgot-password", AuthController.verifyForgetPassword)
+
 router.post("/send-otp", AuthController.sendOtp)
 
 export const AuthRoutes = router
