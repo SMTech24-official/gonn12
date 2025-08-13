@@ -14,6 +14,7 @@ import { MatchPoolRoutes } from "../modules/MatchPool/matchPool.route"
 import { SessionQueueRoutes } from "../modules/SessionQueue/sessionQueue.route"
 import { SubscriptionRoutes } from "../modules/Subscription/subscription.route"
 import { SubscriptionPlanRoutes } from "../modules/SubscriptionPlan/subscriptionPlan.route"
+import { UploadRoutes } from "../modules/Upload/upload.route"
 
 const router = express.Router()
 
@@ -73,6 +74,10 @@ const moduleRoutes = [
   {
     path: "/subscription-plans",
     route: SubscriptionPlanRoutes,
+  },
+  {
+    path: "/uploads",
+    route: UploadRoutes,
   },
 ]
 
