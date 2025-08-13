@@ -239,16 +239,34 @@ const forgotPassword = async (payload: { email: string }) => {
   return { message: "Reset password link sent via your email successfully" }
 }
 
-// reset password
-const resetPassword = async (payload: {
-  otp: string
+const verifyForgetPassword = async (payload: {
   email: string
-  password: string
+  otp: string
 }) => {
-  await checkOtp(payload.email, payload.otp)
-
   const user = await prisma.user.findUnique({
     where: { email: payload.email },
+  })
+
+  if (!user) {
+    throw new ApiError(httpStatus.NOT_FOUND, "User not found")
+  }
+
+  await checkOtp(payload.email, payload.otp)
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: {
+      needsPasswordChange: true,
+    },
+  })
+
+  return { message: "OTP is valid" }
+}
+
+// reset password
+const resetPassword = async (payload: { email: string; password: string }) => {
+  const user = await prisma.user.findUnique({
+    where: { email: payload.email, needsPasswordChange: true },
   })
 
   if (!user) {
@@ -265,6 +283,7 @@ const resetPassword = async (payload: {
     },
     data: {
       password,
+      needsPasswordChange: false,
     },
   })
   return { message: "Password reset successfully" }
