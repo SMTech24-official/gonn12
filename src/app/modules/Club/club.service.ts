@@ -102,29 +102,26 @@ const getMyClub = async (ownerId: string) => {
   return club
 }
 
-const updateClub = async (id: string, payload: Partial<Club>) => {
-  const { ownerId } = payload
+const updateClub = async (userId: string, payload: Partial<Club>) => {
+  const club = await prisma.club.findUnique({
+    where: {
+      id: payload.id,
+      ownerId: userId,
+    },
+  })
 
-  if (ownerId) {
-    const existingClub = await prisma.club.findUnique({
-      where: {
-        ownerId,
-      },
-    })
-
-    if (existingClub && existingClub.id !== id) {
-      throw new ApiError(400, "Club already exists for this owner")
-    }
+  if (!club) {
+    throw new ApiError(404, "Club not found")
   }
 
-  const club = await prisma.club.update({
+  const updatedClub = await prisma.club.update({
     where: {
-      id,
+      id: club.id,
     },
     data: payload,
   })
 
-  return club
+  return updatedClub
 }
 
 const deleteClub = async (id: string) => {

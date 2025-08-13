@@ -45,7 +45,8 @@ const getMyClub = catchAsync(async (req, res) => {
 })
 
 const updateClub = catchAsync(async (req, res) => {
-  const club = await ClubServices.updateClub(req.params.id, req.body)
+  const ownerId = req.user.id
+  const club = await ClubServices.updateClub(ownerId, req.body)
 
   sendResponse(res, {
     statusCode: 200,
