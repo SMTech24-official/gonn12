@@ -10,6 +10,13 @@ router.post(
   auth(UserRole.CLUB_OWNER),
   SessionCourtControllers.createSessionCourt
 )
+
+router.post(
+  "/bulk",
+  auth(UserRole.CLUB_OWNER),
+  SessionCourtControllers.createSessionCourts
+)
+
 router.get(
   "/",
   auth(UserRole.CLUB_OWNER),

@@ -1,31 +1,29 @@
-import ApiError from "../../../errors/ApiErrors"
 import catchAsync from "../../../shared/catchAsync"
-import prisma from "../../../shared/prisma"
 import sendResponse from "../../../shared/sendResponse"
 import { SessionCourtServices } from "./sessionCourt.service"
 
 const createSessionCourt = catchAsync(async (req, res) => {
-  const ownerId = req.user.id
-
-  const club = await prisma.club.findUnique({
-    where: {
-      ownerId,
-    },
-  })
-
-  if (!club) {
-    throw new ApiError(404, "Club not found for the owner")
-  }
-
-  const sessionCourt = await SessionCourtServices.createSessionCourt(
-    req.body,
-    club.id
-  )
+  const sessionCourt = await SessionCourtServices.createSessionCourt(req.body)
 
   sendResponse(res, {
     statusCode: 200,
     message: "SessionCourt created successfully",
     data: sessionCourt,
+  })
+})
+
+const createSessionCourts = catchAsync(async (req, res) => {
+  const { sessionId, courtIds } = req.body
+
+  const sessionCourts = await SessionCourtServices.createSessionCourts(
+    sessionId,
+    courtIds
+  )
+
+  sendResponse(res, {
+    statusCode: 200,
+    message: "SessionCourts created successfully",
+    data: sessionCourts,
   })
 })
 
@@ -92,6 +90,7 @@ const getAvaiableCourtsForSession = catchAsync(async (req, res) => {
 
 export const SessionCourtControllers = {
   createSessionCourt,
+  createSessionCourts,
   getAllSessionCourts,
   getSingleSessionCourt,
   updateSessionCourt,

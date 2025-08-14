@@ -2,7 +2,10 @@ import { SessionCourt } from "@prisma/client"
 import prisma from "../../../shared/prisma"
 import ApiError from "../../../errors/ApiErrors"
 
-const createSessionCourt = async (payload: SessionCourt, clubId: string) => {
+const createSessionCourt = async (payload: {
+  sessionId: string
+  courtId: string
+}) => {
   const { sessionId, courtId } = payload
   if (!sessionId) {
     throw new ApiError(400, "Session ID is required to create a session court")
@@ -25,10 +28,6 @@ const createSessionCourt = async (payload: SessionCourt, clubId: string) => {
     throw new ApiError(400, "Session not found")
   }
 
-  if (session.club.id !== clubId) {
-    throw new ApiError(400, "Session does not belong to the specified club")
-  }
-
   const court = await prisma.court.findUnique({
     where: {
       id: courtId,
@@ -40,10 +39,6 @@ const createSessionCourt = async (payload: SessionCourt, clubId: string) => {
 
   if (!court) {
     throw new ApiError(400, "Court not found")
-  }
-
-  if (court.club.id !== clubId) {
-    throw new ApiError(400, "Court does not belong to the specified club")
   }
 
   // Check if the session already has this court assigned
@@ -62,6 +57,18 @@ const createSessionCourt = async (payload: SessionCourt, clubId: string) => {
     data: payload,
   })
   return sessionCourt
+}
+
+const createSessionCourts = async (sessionId: string, courtIds: string[]) => {
+  const createdSessionCourts = await Promise.all(
+    courtIds.map((courtId) =>
+      createSessionCourt({
+        sessionId,
+        courtId,
+      })
+    )
+  )
+  return createdSessionCourts
 }
 
 const getAllSessionCourts = async (query: any) => {
@@ -169,6 +176,7 @@ const getAvaiableCourtsForSession = (sessionId: string) => {
 
 export const SessionCourtServices = {
   createSessionCourt,
+  createSessionCourts,
   getAllSessionCourts,
   getSingleSessionCourt,
   getAvaiableCourtsForSession,
