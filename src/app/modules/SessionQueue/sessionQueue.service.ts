@@ -57,8 +57,43 @@ const getSessionQueueParticipants = async (sessionId: string, query: any) => {
   }
 }
 
+const getCurrentSessionQueue = async (sessionId: string) => {
+  const sessionQueue = await prisma.sessionQueue.findUnique({
+    where: { sessionId },
+    include: {
+      SessionQueueParticipant: {
+        include: { member: true },
+      },
+    },
+  })
+
+  if (!sessionQueue) {
+    throw new ApiError(400, "SessionQueue not found")
+  }
+
+  return sessionQueue
+}
+
+const deleteQueueParticipant = async (participantId: string) => {
+  const participant = await prisma.sessionQueueParticipant.findUnique({
+    where: { id: participantId },
+  })
+
+  if (!participant) {
+    throw new ApiError(400, "Participant not found")
+  }
+
+  await prisma.sessionQueueParticipant.delete({
+    where: { id: participantId },
+  })
+
+  return participant
+}
+
 export const sessionQueueService = {
   getSessionQueueBySessionId,
   getSessionQueueParticipants,
+  getCurrentSessionQueue,
+  deleteQueueParticipant,
   // Add other session queue related methods here
 }

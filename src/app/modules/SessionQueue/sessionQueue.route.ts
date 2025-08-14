@@ -5,6 +5,12 @@ import { sessionQueueController } from "./sessionQueue.controller"
 const router = express.Router()
 
 router.get(
+  "/current",
+  auth(UserRole.CLUB_OWNER),
+  sessionQueueController.getCurrentSessionQueue
+)
+
+router.get(
   "/:sessionId",
   auth(UserRole.CLUB_OWNER),
   sessionQueueController.getSessionQueueBySessionId
