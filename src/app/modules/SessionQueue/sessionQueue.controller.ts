@@ -83,5 +83,6 @@ export const sessionQueueController = {
   getSessionQueueBySessionId,
   getSessionQueueParticipants,
   getCurrentSessionQueue,
+  deleteQueueParticipant,
   // Add other session queue related controllers here
 }

@@ -67,6 +67,7 @@ model Court{
 model Member{
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
   name        String
+  image String?
   gender     Gender @default(MALE)
   level       Level @default(CASUAL)
   clubId      String   @db.ObjectId

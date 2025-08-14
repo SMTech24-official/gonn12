@@ -22,4 +22,10 @@ router.get(
   sessionQueueController.getSessionQueueParticipants
 )
 
+router.delete(
+  "/:participantId",
+  auth(UserRole.CLUB_OWNER),
+  sessionQueueController.deleteQueueParticipant
+)
+
 export const SessionQueueRoutes = router
