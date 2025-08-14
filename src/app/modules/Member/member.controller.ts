@@ -45,7 +45,7 @@ const getMyClubMembers = catchAsync(async (req, res) => {
   if (!club) {
     throw new ApiError(404, "Club not found for the owner")
   }
-  const members = await MemberServices.getMyClubMembers({ clubId: club.id })
+  const members = await MemberServices.getMyClubMembers(club.id, req.query)
   sendResponse(res, {
     statusCode: 200,
     message: "My Club Members retrieved successfully",

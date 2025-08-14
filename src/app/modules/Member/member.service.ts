@@ -104,8 +104,8 @@ const getAllMembers = async (query: any) => {
   }
 }
 
-const getMyClubMembers = async (query: any) => {
-  const { page = 1, limit = 10, clubId } = query
+const getMyClubMembers = async (clubId: string, query: any) => {
+  const { page = 1, limit = 10 } = query
 
   const skip = (Number(page) - 1) * Number(limit)
   const take = Number(limit)
