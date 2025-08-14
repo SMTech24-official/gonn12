@@ -1,5 +1,8 @@
+import ApiError from "../../../errors/ApiErrors"
 import catchAsync from "../../../shared/catchAsync"
+import prisma from "../../../shared/prisma"
 import sendResponse from "../../../shared/sendResponse"
+import { SessionServices } from "../Session/session.service"
 import { SessionCourtServices } from "./sessionCourt.service"
 
 const createSessionCourt = catchAsync(async (req, res) => {
@@ -13,10 +16,27 @@ const createSessionCourt = catchAsync(async (req, res) => {
 })
 
 const createSessionCourts = catchAsync(async (req, res) => {
-  const { sessionId, courtIds } = req.body
+  const userId = req.user.id
+  const club = await prisma.club.findUnique({
+    where: {
+      ownerId: userId,
+    },
+  })
+
+  if (!club) {
+    throw new ApiError(404, "Club not found")
+  }
+
+  const activeSession = await SessionServices.getActiveSession(club.id)
+
+  if (!activeSession) {
+    throw new ApiError(404, "Active session not found")
+  }
+
+  const { courtIds } = req.body
 
   const sessionCourts = await SessionCourtServices.createSessionCourts(
-    sessionId,
+    activeSession.id,
     courtIds
   )
 

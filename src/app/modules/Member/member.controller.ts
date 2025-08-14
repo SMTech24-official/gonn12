@@ -5,6 +5,17 @@ import sendResponse from "../../../shared/sendResponse"
 import { MemberServices } from "./member.service"
 
 const createMember = catchAsync(async (req, res) => {
+  const ownerId = req.user.id
+  const club = await prisma.club.findUnique({
+    where: {
+      ownerId,
+    },
+  })
+  if (!club) {
+    throw new ApiError(404, "Club not found for the owner")
+  }
+
+  req.body.clubId = club.id
   const member = await MemberServices.createMember(req.body)
 
   sendResponse(res, {

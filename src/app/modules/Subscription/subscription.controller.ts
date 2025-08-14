@@ -83,6 +83,10 @@ const getCurrentSubscription = catchAsync(async (req, res) => {
     club.id
   )
 
+  if (!subscription) {
+    throw new ApiError(404, "Current subscription not found")
+  }
+
   sendResponse(res, {
     statusCode: 200,
     message: "Current subscription retrieved successfully",

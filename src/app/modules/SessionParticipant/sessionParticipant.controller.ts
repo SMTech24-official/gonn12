@@ -1,5 +1,8 @@
+import ApiError from "../../../errors/ApiErrors"
 import catchAsync from "../../../shared/catchAsync"
+import prisma from "../../../shared/prisma"
 import sendResponse from "../../../shared/sendResponse"
+import { SessionServices } from "../Session/session.service"
 import { SessionParticipantServices } from "./sessionParticipant.service"
 
 const createSessionParticipant = catchAsync(async (req, res) => {
@@ -14,11 +17,27 @@ const createSessionParticipant = catchAsync(async (req, res) => {
 })
 
 const createSessionParticipants = catchAsync(async (req, res) => {
-  const { sessionId, memberIds } = req.body
+  const ownerId = req.user.id
+
+  const club = await prisma.club.findUnique({
+    where: { ownerId },
+  })
+
+  if (!club) {
+    throw new ApiError(404, "Club not found")
+  }
+
+  const { memberIds } = req.body
+
+  const session = await SessionServices.getActiveSession(club.id)
+
+  if (!session) {
+    throw new ApiError(404, "No active session found")
+  }
 
   const sessionParticipants =
     await SessionParticipantServices.createSessionParticipants(
-      sessionId,
+      session.id,
       memberIds
     )
 
@@ -75,6 +94,33 @@ const deleteSessionParticipant = catchAsync(async (req, res) => {
   })
 })
 
+const availableMembersToAddToSession = catchAsync(async (req, res) => {
+  const ownerId = req.user.id
+
+  const club = await prisma.club.findUnique({
+    where: { ownerId },
+  })
+
+  if (!club) {
+    throw new ApiError(404, "Club not found")
+  }
+
+  const session = await SessionServices.getActiveSession(club.id)
+
+  if (!session) {
+    throw new ApiError(404, "No active session found")
+  }
+
+  const members =
+    await SessionParticipantServices.availableMembersToAddToSession(session.id)
+
+  sendResponse(res, {
+    statusCode: 200,
+    message: "Available members retrieved successfully",
+    data: members,
+  })
+})
+
 export const SessionParticipantControllers = {
   createSessionParticipant,
   createSessionParticipants,
@@ -82,4 +128,5 @@ export const SessionParticipantControllers = {
   getSingleSessionParticipant,
   updateSessionParticipant,
   deleteSessionParticipant,
+  availableMembersToAddToSession,
 }

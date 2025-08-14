@@ -113,10 +113,6 @@ const getCurrentSubscription = async (clubId: string) => {
     },
   })
 
-  if (!subscription) {
-    throw new ApiError(404, "Subscription not found")
-  }
-
   return subscription
 }
 

@@ -76,11 +76,19 @@ const createSessionParticipant = async ({
   return participant
 }
 
-const createSessionParticipants = async(sessionId:string, memberIds:string[]) => {
+const createSessionParticipants = async (
+  sessionId: string,
+  memberIds: string[]
+) => {
   if (!sessionId) throw new ApiError(400, "Session ID is required")
-  if (!memberIds || memberIds.length === 0) throw new ApiError(400, "Member IDs are required")
+  if (!memberIds || memberIds.length === 0)
+    throw new ApiError(400, "Member IDs are required")
 
-  const participants = await Promise.all(memberIds.map(memberId => createSessionParticipant({ sessionId, memberId })))
+  const participants = await Promise.all(
+    memberIds.map((memberId) =>
+      createSessionParticipant({ sessionId, memberId })
+    )
+  )
 
   return participants
 }
@@ -219,6 +227,40 @@ const deleteSessionParticipant = async (id: string) => {
   return sessionParticipant
 }
 
+const availableMembersToAddToSession = async (sessionId: string) => {
+  const session = await prisma.session.findUnique({
+    where: {
+      id: sessionId,
+    },
+  })
+
+  if (!session) {
+    throw new ApiError(404, "Session not found")
+  }
+
+  const members = []
+
+  const visitors = await prisma.member.findMany({
+    where: {
+      sessionId,
+      clubId: session.clubId,
+    },
+  })
+
+  members.push(...visitors)
+
+  const clubMembers = await prisma.member.findMany({
+    where: {
+      clubId: session.clubId,
+      sessionId: null, // Not already in a session
+    },
+  })
+
+  members.push(...clubMembers)
+
+  return members
+}
+
 export const SessionParticipantServices = {
   createSessionParticipant,
   createSessionParticipants,
@@ -226,4 +268,5 @@ export const SessionParticipantServices = {
   getSingleSessionParticipant,
   updateSessionParticipant,
   deleteSessionParticipant,
+  availableMembersToAddToSession,
 }

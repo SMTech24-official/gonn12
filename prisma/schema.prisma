@@ -17,7 +17,7 @@ model User {
   isVerified   Boolean    @default(false)
   needsPasswordChange Boolean @default(false)
 
-  customerId   String?    @unique
+  customerId   String?    
   role         UserRole   @default(CLUB_OWNER)
   status       UserStatus @default(ACTIVE)
   createdAt    DateTime   @default(now())
@@ -69,9 +69,9 @@ model Member{
   name        String
   gender     Gender @default(MALE)
   level       Level @default(CASUAL)
-  clubId      String?   @db.ObjectId
+  clubId      String   @db.ObjectId
   sessionId   String?   @db.ObjectId
-  isMember   Boolean @default(false)
+  isMember   Boolean @default(true)
   joinedAt    DateTime @default(now())
 
   club        Club?     @relation(fields: [clubId], references: [id], onDelete: Cascade)

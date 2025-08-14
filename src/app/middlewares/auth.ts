@@ -32,6 +32,9 @@ const auth = (...roles: string[]) => {
           id: id,
           isVerified: true,
         },
+        include: {
+          Club: true,
+        },
       })
       if (!user) {
         throw new ApiError(httpStatus.NOT_FOUND, "User not found!")

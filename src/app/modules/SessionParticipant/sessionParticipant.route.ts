@@ -16,6 +16,12 @@ router.post(
   auth(UserRole.CLUB_OWNER),
   SessionParticipantControllers.createSessionParticipants
 )
+router.get(
+  "/available-members",
+  auth(UserRole.CLUB_OWNER),
+  SessionParticipantControllers.availableMembersToAddToSession
+)
+
 router.get("/", SessionParticipantControllers.getAllSessionParticipants)
 router.get("/:id", SessionParticipantControllers.getSingleSessionParticipant)
 router.patch(

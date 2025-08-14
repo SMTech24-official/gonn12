@@ -2,43 +2,67 @@ import { Member } from "@prisma/client"
 import prisma from "../../../shared/prisma"
 import ApiError from "../../../errors/ApiErrors"
 import { SubscriptionServices } from "../Subscription/subscription.service"
+import { Session } from "inspector"
+import { SessionServices } from "../Session/session.service"
 
 const createMember = async (payload: Member) => {
-  let { clubId, isMember } = payload
+  const { clubId, isMember } = payload
 
-  const member = await prisma.$transaction(async (prisma) => {
-    if (clubId) {
-      const club = await prisma.club.findUnique({
-        where: {
-          id: clubId,
-        },
-      })
+  if (!isMember) {
+    const currentSession = await SessionServices.getActiveSession(clubId)
 
-      if (!club) {
-        throw new ApiError(404, "Club not found")
-      }
-
-      const subscription = await SubscriptionServices.getCurrentSubscription(
-        clubId
-      )
-
-      if (!subscription && club.remainingMembers <= 0) {
-        throw new ApiError(400, "No remaining members available for this club")
-      }
-
-      isMember = false
-      await prisma.club.update({
-        where: { id: clubId },
-        data: {
-          remainingMembers: club.remainingMembers - 1,
-        },
-      })
+    if (!currentSession) {
+      throw new ApiError(404, "No active session found")
     }
-    const member = await prisma.member.create({
-      data: payload,
+
+    const session = await prisma.session.findUnique({
+      where: {
+        id: currentSession.id,
+      },
     })
 
-    return member
+    if (!session) {
+      throw new ApiError(404, "Session not found")
+    }
+
+    payload.sessionId = session.id
+  }
+
+  const club = await prisma.club.findUnique({
+    where: {
+      id: clubId,
+    },
+    include: {
+      owner: true,
+    },
+  })
+
+  if (!club) {
+    throw new ApiError(404, "Club not found")
+  }
+
+  const subscription = await SubscriptionServices.getCurrentSubscription(clubId)
+
+  if (!subscription) {
+    if (club.remainingMembers === 0) {
+      throw new ApiError(
+        403,
+        "No active subscription found and club is at full capacity"
+      )
+    }
+  }
+
+  const member = await prisma.member.create({
+    data: payload,
+  })
+
+  await prisma.club.update({
+    where: {
+      id: clubId,
+    },
+    data: {
+      remainingMembers: club.remainingMembers - 1,
+    },
   })
 
   return member

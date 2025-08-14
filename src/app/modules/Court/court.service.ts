@@ -31,7 +31,9 @@ const createCourt = async (payload: Court) => {
     throw new ApiError(400, "Court with this name already exists")
   }
 
-  const subscription = SubscriptionServices.getCurrentSubscription(clubId)
+  const subscription = await SubscriptionServices.getCurrentSubscription(clubId)
+
+  console.log(subscription)
 
   if (!subscription) {
     if (club.remainingCourts <= 0) {
