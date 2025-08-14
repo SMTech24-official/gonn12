@@ -10,6 +10,12 @@ router.post(
   auth(UserRole.CLUB_OWNER),
   SessionParticipantControllers.createSessionParticipant
 )
+
+router.post(
+  "/bulk",
+  auth(UserRole.CLUB_OWNER),
+  SessionParticipantControllers.createSessionParticipants
+)
 router.get("/", SessionParticipantControllers.getAllSessionParticipants)
 router.get("/:id", SessionParticipantControllers.getSingleSessionParticipant)
 router.patch(

@@ -13,6 +13,22 @@ const createSessionParticipant = catchAsync(async (req, res) => {
   })
 })
 
+const createSessionParticipants = catchAsync(async (req, res) => {
+  const { sessionId, memberIds } = req.body
+
+  const sessionParticipants =
+    await SessionParticipantServices.createSessionParticipants(
+      sessionId,
+      memberIds
+    )
+
+  sendResponse(res, {
+    statusCode: 200,
+    message: "SessionParticipants created successfully",
+    data: sessionParticipants,
+  })
+})
+
 const getAllSessionParticipants = catchAsync(async (req, res) => {
   const sessionParticipants =
     await SessionParticipantServices.getAllSessionParticipants(req.query)
@@ -61,6 +77,7 @@ const deleteSessionParticipant = catchAsync(async (req, res) => {
 
 export const SessionParticipantControllers = {
   createSessionParticipant,
+  createSessionParticipants,
   getAllSessionParticipants,
   getSingleSessionParticipant,
   updateSessionParticipant,

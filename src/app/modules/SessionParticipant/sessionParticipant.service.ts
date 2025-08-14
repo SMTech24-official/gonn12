@@ -76,6 +76,15 @@ const createSessionParticipant = async ({
   return participant
 }
 
+const createSessionParticipants = async(sessionId:string, memberIds:string[]) => {
+  if (!sessionId) throw new ApiError(400, "Session ID is required")
+  if (!memberIds || memberIds.length === 0) throw new ApiError(400, "Member IDs are required")
+
+  const participants = await Promise.all(memberIds.map(memberId => createSessionParticipant({ sessionId, memberId })))
+
+  return participants
+}
+
 const getAllSessionParticipants = async (query: any) => {
   const { page = 1, limit = 10, sessionId } = query
 
@@ -212,6 +221,7 @@ const deleteSessionParticipant = async (id: string) => {
 
 export const SessionParticipantServices = {
   createSessionParticipant,
+  createSessionParticipants,
   getAllSessionParticipants,
   getSingleSessionParticipant,
   updateSessionParticipant,
