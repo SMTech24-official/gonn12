@@ -176,6 +176,7 @@ model SessionParticipant {
   member      Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
 
   @@map("SessionParticipants")
+  @@unique([memberId, sessionId])
 }
 
 model SessionCourt{

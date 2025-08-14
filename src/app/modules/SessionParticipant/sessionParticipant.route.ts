@@ -23,6 +23,11 @@ router.get(
 )
 
 router.get("/", SessionParticipantControllers.getAllSessionParticipants)
+router.get(
+  "/current",
+  auth(UserRole.CLUB_OWNER),
+  SessionParticipantControllers.getCurrentSessionParticipants
+)
 router.get("/:id", SessionParticipantControllers.getSingleSessionParticipant)
 router.patch(
   "/:id",

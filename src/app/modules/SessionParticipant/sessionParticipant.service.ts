@@ -1,6 +1,7 @@
 import { SessionParticipant } from "@prisma/client"
 import prisma from "../../../shared/prisma"
 import ApiError from "../../../errors/ApiErrors"
+import { SubscriptionServices } from "../Subscription/subscription.service"
 
 interface JoinSessionInput {
   sessionId: string
@@ -84,11 +85,44 @@ const createSessionParticipants = async (
   if (!memberIds || memberIds.length === 0)
     throw new ApiError(400, "Member IDs are required")
 
-  const participants = await Promise.all(
-    memberIds.map((memberId) =>
-      createSessionParticipant({ sessionId, memberId })
-    )
+  const session = await prisma.session.findUnique({
+    where: { id: sessionId },
+  })
+  if (!session) throw new ApiError(404, "Session not found")
+
+  const subscription = await SubscriptionServices.getCurrentSubscription(
+    session.clubId
   )
+
+  if (!subscription) {
+    if (memberIds.length > session.remainingParticipants) {
+      throw new ApiError(400, "Not enough remaining participants")
+    }
+  }
+
+  const participants: SessionParticipant[] = []
+
+  for (const memberId of memberIds) {
+    const existingParticipant = await prisma.sessionParticipant.findFirst({
+      where: {
+        sessionId,
+        memberId,
+      },
+    })
+
+    if (existingParticipant) {
+      continue
+    }
+
+    const participant = await prisma.sessionParticipant.create({
+      data: {
+        sessionId,
+        memberId,
+        status: "ACTIVE",
+      },
+    })
+    participants.push(participant)
+  }
 
   return participants
 }
@@ -261,6 +295,30 @@ const availableMembersToAddToSession = async (sessionId: string) => {
   return members
 }
 
+const getCurrentSessionParticipants = async (sessionId: string) => {
+  const participants = await prisma.sessionParticipant.findMany({
+    where: {
+      sessionId,
+    },
+    include: {
+      member: true,
+    },
+  })
+
+  const total = await prisma.sessionParticipant.count({
+    where: {
+      sessionId,
+    },
+  })
+
+  return {
+    meta: {
+      total,
+    },
+    participants,
+  }
+}
+
 export const SessionParticipantServices = {
   createSessionParticipant,
   createSessionParticipants,
@@ -269,4 +327,5 @@ export const SessionParticipantServices = {
   updateSessionParticipant,
   deleteSessionParticipant,
   availableMembersToAddToSession,
+  getCurrentSessionParticipants,
 }

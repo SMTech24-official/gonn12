@@ -121,6 +121,33 @@ const availableMembersToAddToSession = catchAsync(async (req, res) => {
   })
 })
 
+const getCurrentSessionParticipants = catchAsync(async (req, res) => {
+  const ownerId = req.user.id
+
+  const club = await prisma.club.findUnique({
+    where: { ownerId },
+  })
+
+  if (!club) {
+    throw new ApiError(404, "Club not found")
+  }
+
+  const session = await SessionServices.getActiveSession(club.id)
+
+  if (!session) {
+    throw new ApiError(404, "No active session found")
+  }
+
+  const participants =
+    await SessionParticipantServices.getCurrentSessionParticipants(session.id)
+
+  sendResponse(res, {
+    statusCode: 200,
+    message: "Current session participants retrieved successfully",
+    data: participants,
+  })
+})
+
 export const SessionParticipantControllers = {
   createSessionParticipant,
   createSessionParticipants,
@@ -129,4 +156,5 @@ export const SessionParticipantControllers = {
   updateSessionParticipant,
   deleteSessionParticipant,
   availableMembersToAddToSession,
+  getCurrentSessionParticipants,
 }
