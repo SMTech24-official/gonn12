@@ -2,8 +2,7 @@ import { Session, Type } from "@prisma/client"
 import prisma from "../../../shared/prisma"
 import ApiError from "../../../errors/ApiErrors"
 
-
-const createSession = async (payload:Session) => {
+const createSession = async (payload: Session) => {
   const { clubId, startTime, endTime, type = Type.DOUBLES } = payload
 
   if (!clubId) {
@@ -43,13 +42,7 @@ const createSession = async (payload:Session) => {
   // Use a transaction to create session and sessionQueue atomically
   const session = await prisma.$transaction(async (tx) => {
     const createdSession = await tx.session.create({
-      data: {
-        clubId,
-        startTime: start,
-        endTime: end,
-        type,
-        isActive: true,
-      },
+      data: payload,
     })
 
     await tx.sessionQueue.create({

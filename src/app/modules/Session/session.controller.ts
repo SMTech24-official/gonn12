@@ -17,10 +17,12 @@ const createSession = catchAsync(async (req, res) => {
     throw new ApiError(404, "Club not found")
   }
 
-  const { startTime } = req.body
+  const { startTime, name } = req.body
 
-  if (!startTime) {
-    req.body.startTime = new Date()
+  console.log(req.body)
+
+  if (!name) {
+    throw new ApiError(400, "Session name is required")
   }
 
   const session = await SessionServices.createSession({
