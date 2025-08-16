@@ -2,15 +2,9 @@ import { Session, Type } from "@prisma/client"
 import prisma from "../../../shared/prisma"
 import ApiError from "../../../errors/ApiErrors"
 
-interface CreateSessionInput {
-  clubId: string
-  startTime: Date | string
-  endTime: Date | string
-  type?: Type // SINGLE or DOUBLES, default DOUBLES
-}
 
-const createSession = async (input: CreateSessionInput) => {
-  const { clubId, startTime, endTime, type = Type.DOUBLES } = input
+const createSession = async (payload:Session) => {
+  const { clubId, startTime, endTime, type = Type.DOUBLES } = payload
 
   if (!clubId) {
     throw new ApiError(400, "clubId is required")
