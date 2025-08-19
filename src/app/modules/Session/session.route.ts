@@ -19,6 +19,12 @@ router.get(
   SessionControllers.getActiveSession
 )
 
+router.get(
+  "/summary",
+  auth(UserRole.CLUB_OWNER),
+  SessionControllers.getSessionSummary
+)
+
 router.get("/:id", auth(), SessionControllers.getSingleSession)
 router.patch(
   "/:id",

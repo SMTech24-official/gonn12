@@ -240,6 +240,46 @@ const getActiveSession = async (clubId: string) => {
   return session
 }
 
+const getSessionSummary = async (clubId: string, query: any) => {
+  const { limit = 1, page = 10 } = query
+
+  const skip = (Number(page) - 1) * Number(limit)
+  const take = Number(limit)
+
+  const currentSession = await SessionServices.getActiveSession(clubId)
+  if (!currentSession) {
+    throw new ApiError(400, "No active session found")
+  }
+
+  const count = await prisma.sessionParticipant.count({
+    where: {
+      sessionId: currentSession.id,
+    },
+  })
+
+  const sessionParticipants = await prisma.sessionParticipant.findMany({
+    where: {
+      sessionId: currentSession.id,
+    },
+    orderBy: {
+      wins: "desc",
+    },
+    include: {
+      member: true,
+    },
+  })
+
+  return {
+    meta: {
+      totalCount: count,
+      totalPages: Math.ceil(count / take),
+      currentPage: Number(page),
+      pageSize: Number(limit),
+    },
+    data: sessionParticipants,
+  }
+}
+
 export const SessionServices = {
   createSession,
   getAllSessions,
@@ -249,4 +289,5 @@ export const SessionServices = {
   updateSession,
   deleteSession,
   endSession,
+  getSessionSummary,
 }
