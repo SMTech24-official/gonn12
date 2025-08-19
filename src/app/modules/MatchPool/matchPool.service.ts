@@ -385,6 +385,37 @@ const createSessionMatch = async (
       },
     })
 
+    const matchPoolParticipants = await prisma.matchPoolParticipant.findMany({
+      where: { matchPoolId: matchPool.id },
+    })
+
+    if (matchPoolParticipants.length < 4) {
+      throw new ApiError(400, "Not enough participants in MatchPool")
+    }
+
+    for (const participant of matchPoolParticipants) {
+      const SessionParticipant = await prisma.sessionParticipant.findUnique({
+        where: {
+          memberId_sessionId: {
+            memberId: participant.memberId,
+            sessionId: matchPool.sessionId,
+          },
+        },
+      })
+      if (!SessionParticipant) {
+        throw new ApiError(400, "SessionParticipant not found")
+      }
+
+      if (SessionParticipant.matchCount < 4) {
+        throw new ApiError(400, "Not enough matches played")
+      }
+
+      await prisma.sessionParticipant.update({
+        where: { id: SessionParticipant.id },
+        data: { matchCount: SessionParticipant.matchCount + 1 },
+      })
+    }
+
     await prisma.matchParticipant.createMany({
       data: matchPool.matchPoolParticipants.map((participant) => ({
         matchId: match.id,

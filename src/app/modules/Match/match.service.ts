@@ -317,6 +317,30 @@ const finishMatch = async (
       },
     })
 
+    if (match.sessionId) {
+      const winningTeamParticipants = await tx.matchParticipant.findMany({
+        where: {
+          matchId,
+          teamName: winningTeam,
+        },
+      })
+
+      for (const participant of winningTeamParticipants) {
+        const sessionParticipant = await tx.sessionParticipant.update({
+          where: {
+            memberId_sessionId: {
+              memberId: participant.memberId,
+              sessionId: match.sessionId,
+            },
+          },
+          data: { wins: { increment: 1 } },
+        })
+        if (!sessionParticipant) {
+          throw new ApiError(400, "SessionParticipant not found")
+        }
+      }
+    }
+
     await tx.match.update({
       where: { id: matchId },
       data: {
